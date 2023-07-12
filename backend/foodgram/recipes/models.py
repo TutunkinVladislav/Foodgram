@@ -1,38 +1,7 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
+from django.db import models
+from users.models import User
 
-
-class User(AbstractUser):
-    """Модель пользователей"""
-
-    email = models.EmailField(
-        'Email',
-        max_length=254,
-        unique=True,
-    )
-    username = models.CharField(
-        'Логин',
-        max_length=150,
-        unique=True,
-    )
-    first_name = models.CharField(
-        'Имя',
-        max_length=150,
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=150,
-    )
-
-    class Meta:
-        ordering = ('id',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-
-    def __str__(self):
-        return self.username
-    
 
 class Ingredient(models.Model):
     """Модель ингредиентов"""
@@ -57,7 +26,7 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.measurement_unit})'
-    
+
 
 class Tag(models.Model):
     """Модель тегов"""
@@ -88,7 +57,7 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class Recipe(models.Model):
     """Модель рецептов"""
@@ -96,7 +65,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор рецепта',
+        verbose_name='Автор',
         related_name='recipe',
     )
     ingredients = models.ManyToManyField(

@@ -1,6 +1,5 @@
 import csv
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 from recipes.models import Ingredient
@@ -11,8 +10,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         with open(
-            f'D:\Dev/foodgram-project-react\data\ingredients.csv',
-            # f'{settings.STATIC_ROOT}/data/ingredients.csv',
+            f'D:/Dev/foodgram-project-react/data/ingredients.csv',
             'r',
             encoding='utf-8'
         ) as csv_file:
