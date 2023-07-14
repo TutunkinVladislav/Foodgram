@@ -92,7 +92,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class ImageBase64(serializers.ImageField):
-    """Сериализатор для картинки"""
+    """Сериализатор для декодирования картинки"""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             img_format, img_str = data.split(';base64,')
@@ -117,6 +117,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     image = ImageBase64(
         required=False,
+        allow_null=True
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -163,14 +164,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'author', 'ingredients', 'tags',
                   'image', 'name', 'text', 'cooking_time')
-        # extra_kwargs = {'tags': {"error_messages": {
-        #     "does_not_exist": "Ошибка в Тэге, id = {pk_value} не существует"}}}
+        extra_kwargs = {'tags': {"error_messages": {
+            "does_not_exist": "Ошибка в Тэге, id = {pk_value} не существует"}}}
 
     def validate(self, data):
-        # name = data.get('name')
-        # if len(name) < 4:
-        #     raise serializers.ValidationError({
-        #         'name': 'Название рецепта минимум 4 символа'})
+        name = data.get('name')
+        if len(name) < 4:
+            raise serializers.ValidationError({
+                'name': 'Название рецепта минимум 4 символа'})
         ingredients = data.get('ingredients')
         for ingredient in ingredients:
             if not Ingredient.objects.filter(
@@ -190,12 +191,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'amount': 'Минимальное количество ингридиента 1'
             })
-        # cooking_time = data.get('cooking_time')
-        # if cooking_time > 300 or cooking_time < 1:
-        #     raise serializers.ValidationError({
-        #         'cooking_time': 'Время приготовления блюда от 1 до 300 минут'
-        #     })
-        # return data
+        cooking_time = data.get('cooking_time')
+        if cooking_time > 300 or cooking_time < 1:
+            raise serializers.ValidationError({
+                'cooking_time': 'Время приготовления блюда от 1 до 300 минут'
+            })
+        return data
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:

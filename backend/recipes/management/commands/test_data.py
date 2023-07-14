@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         with open(
-            f'D:/Dev/foodgram-project-react/data/ingredients.csv',
+            f'E:\Dev/foodgram-project-react/data/ingredients.csv',
             'r',
             encoding='utf-8'
         ) as csv_file:
