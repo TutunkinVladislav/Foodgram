@@ -4,14 +4,9 @@ from .models import (FavoriteRecipe, Ingredient, IngredientAmount, Recipe,
                      ShoppingCart, Subscribe, Tag)
 
 
-class RecipeAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'author',
-    )
-    search_fields = ('name', 'author', 'tags')
-    list_filter = ('name', 'author', 'tags')
-    empty_value_display = '-пусто-'
+class IngredientsInline(admin.TabularInline):
+    model = Recipe.ingredients.through
+    extra = 3
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -21,6 +16,17 @@ class IngredientAdmin(admin.ModelAdmin):
     )
     search_fields = ('name',)
     list_filter = ('name',)
+    empty_value_display = '-пусто-'
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'author',
+    )
+    inlines = (IngredientsInline,)
+    search_fields = ('name', 'author', 'tags')
+    list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
 
 

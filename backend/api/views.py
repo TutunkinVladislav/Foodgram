@@ -35,7 +35,7 @@ class UserViewSet(UserViewSet):
         return UserSerializer
 
     def get_permissions(self):
-        if self.action == 'me':
+        if self.action.lower() == 'me':
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
@@ -160,8 +160,7 @@ class FavoriteRecipeViewSet(mixins.CreateModelMixin,
     serializer_class = FavoriteRecipeSerializer
 
     def get_queryset(self):
-        user = self.request.user.id
-        return FavoriteRecipe.objects.filter(user=user)
+        return FavoriteRecipe.objects.filter(user=self.request.user.id)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -171,7 +170,7 @@ class FavoriteRecipeViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user,
-            favorite_recipe=get_object_or_404(
+            recipe=get_object_or_404(
                 Recipe,
                 id=self.kwargs.get('recipe_id')
             )
@@ -181,14 +180,14 @@ class FavoriteRecipeViewSet(mixins.CreateModelMixin,
     def delete(self, request, recipe_id):
         user = request.user
         if not user.favorite.select_related(
-                'favorite_recipe').filter(
-                    favorite_recipe_id=recipe_id).exists():
+                'recipe').filter(
+                    recipe_id=recipe_id).exists():
             return Response({'errors': 'Рецепт не в избранном'},
                             status=status.HTTP_400_BAD_REQUEST)
         get_object_or_404(
             FavoriteRecipe,
             user=request.user,
-            favorite_recipe_id=recipe_id).delete()
+            recipe_id=recipe_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -199,8 +198,7 @@ class ShoppingCartViewSet(mixins.CreateModelMixin,
     serializer_class = ShoppingCartSerializer
 
     def get_queryset(self):
-        user = self.request.user.id
-        return ShoppingCart.objects.filter(user=user)
+        return ShoppingCart.objects.filter(user=self.request.user.id)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

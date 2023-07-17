@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from users.models import User
 
@@ -92,7 +92,8 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         'Время приготовления',
         default=1,
-        validators=(MinValueValidator(1, 'Минимум 1 минута'),),
+        validators=(MinValueValidator(1, 'Минимум 1 минута'),
+                    MaxValueValidator(180, 'Максимум 3 часа')),
     )
     pub_date = models.DateTimeField(
         'Дата публикации рецепта',
@@ -123,7 +124,8 @@ class IngredientAmount(models.Model):
     amount = models.PositiveIntegerField(
         'Количество',
         default=1,
-        validators=(MinValueValidator(1, 'Минимум 1'),),
+        validators=(MinValueValidator(1, 'Минимум 1'),
+                    MaxValueValidator(15, 'Максимум 15')),
     )
 
     class Meta:
@@ -140,34 +142,53 @@ class IngredientAmount(models.Model):
                 f'{self.ingredient.measurement_unit} {self.ingredient.name}')
 
 
-class FavoriteRecipe(models.Model):
-    """Модель избранных рецептов"""
+class AbstractBase(models.Model):
+    """Абстрактная модель"""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite',
         verbose_name='Пользователь'
     )
-    favorite_recipe = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite_recipe',
-        verbose_name='Избранный рецепт'
+        verbose_name='Рецепт',
     )
 
     class Meta:
+        abstract = True
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'favorite_recipe'),
+                fields=('user', 'recipe'),
                 name='unique favourite')]
+
+
+class FavoriteRecipe(AbstractBase):
+    """Модель избранных рецептов"""
+
+    class Meta:
+        default_related_name = 'favorite'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
-        ordering = ('id',)
 
     def __str__(self):
         return (f'Пользователь: {self.user.username}'
-                f'рецепт: {self.favorite_recipe.name}')
+                f'рецепт: {self.recipe.name}')
+
+
+class ShoppingCart(AbstractBase):
+    """Модель списка покупок"""
+
+    class Meta:
+        default_related_name = 'shopping_cart'
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
+
+    def __str__(self):
+        return (f'Пользователь: {self.user.username},'
+                f'рецепт в списке: {self.recipe.name}')
 
 
 class Subscribe(models.Model):
@@ -199,33 +220,3 @@ class Subscribe(models.Model):
     def __str__(self):
         return (f'Пользователь: {self.user.username},'
                 f' автор: {self.author.username}')
-
-
-class ShoppingCart(models.Model):
-    """Модель списка покупок"""
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Пользователь'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='recipe_shopping_cart',
-        verbose_name='Рецепт'
-    )
-
-    class Meta:
-        ordering = ('id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='unique recipe in shopping cart')]
-        verbose_name = 'Список покупок'
-        verbose_name_plural = 'Список покупок'
-
-    def __str__(self):
-        return (f'Пользователь: {self.user.username},'
-                f'рецепт в списке: {self.recipe.name}')

@@ -129,17 +129,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         return (self.context.get('request').user.is_authenticated
-                and FavoriteRecipe.objects.filter(
-                    user=self.context.get('request').user,
-                    favorite_recipe=obj
-        ).exists())
+                and obj.favorite.exists()
+                )
 
     def get_is_in_shopping_cart(self, obj):
         return (self.context.get('request').user.is_authenticated
-                and ShoppingCart.objects.filter(
-                    user=self.context.get('request').user,
-                    recipe=obj
-        ).exists())
+                and obj.shopping_cart.exists()
+                )
 
 
 class IngredientsEditSerializer(serializers.ModelSerializer):
@@ -294,17 +290,17 @@ class SubscribeSerializer(serializers.ModelSerializer):
 class FavoriteRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов"""
     id = serializers.ReadOnlyField(
-        source='favorite_recipe.id',
+        source='recipe.id',
     )
     name = serializers.ReadOnlyField(
-        source='favorite_recipe.name',
+        source='recipe.name',
     )
     image = serializers.CharField(
-        source='favorite_recipe.image',
+        source='recipe.image',
         read_only=True,
     )
     cooking_time = serializers.ReadOnlyField(
-        source='favorite_recipe.cooking_time',
+        source='recipe.cooking_time',
     )
 
     class Meta:
@@ -315,7 +311,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         recipe = self.context.get('recipe_id')
         if FavoriteRecipe.objects.filter(user=user,
-                                         favorite_recipe=recipe).exists():
+                                         recipe=recipe).exists():
             raise serializers.ValidationError({
                 'errors': 'Рецепт уже в избранном'})
         return data
