@@ -95,7 +95,6 @@ jobs:
           sudo docker-compose up -d
           sudo docker-compose exec -T backend python manage.py migrate
           sudo docker-compose exec -T backend python manage.py collectstatic --no-input
-          sudo docker-compose exec -T backend python manage.py loaddata datadump.json
 
 #   send_message:
 #     runs-on: ubuntu-latest
