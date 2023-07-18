@@ -3,6 +3,7 @@ services:
 
   db:
     image: postgres:13.0-alpine
+    container_name: db
     volumes:
       - data_value:/var/lib/postgresql/data/
     env_file:
@@ -10,6 +11,7 @@ services:
 
   frontend:
     image: tvladislav/foodgram_frontend:latest
+    container_name: frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -17,6 +19,7 @@ services:
 
   backend:
     image: tvladislav/foodgram_backend:latest
+    container_name: backend
     restart: always
     volumes:
      - static_value:/app/static/
@@ -28,7 +31,7 @@ services:
 
   nginx:
     image: nginx:1.21.3-alpine
-    restart: unless-stopped
+    container_name: nginx
     ports:
       - "80:80"
     volumes:
