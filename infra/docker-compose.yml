@@ -17,7 +17,6 @@ services:
 
   backend:
     image: tvladislav/foodgram_backend:latest
-    entrypoint: ./entrypoint.sh
     restart: always
     volumes:
      - static_value:/app/static/
