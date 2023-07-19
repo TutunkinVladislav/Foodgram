@@ -23,11 +23,18 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
+        'count_favorite',
     )
+    readonly_fields = ('count_favorite',)
     inlines = (IngredientsInline,)
     search_fields = ('name', 'author', 'tags')
     list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
+
+    def count_favorite(self, obj):
+        return obj.favorite.count()
+
+    count_favorite.short_description = 'Добавлено в избранное'
 
 
 admin.site.register(Recipe, RecipeAdmin)
