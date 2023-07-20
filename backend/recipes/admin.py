@@ -11,7 +11,7 @@ class IngredientsInline(admin.TabularInline):
 
 class TagsInline(admin.TabularInline):
     model = Recipe.tags.through
-    extra = 3
+    extra = 2
 
 
 class IngredientAdmin(admin.ModelAdmin):
