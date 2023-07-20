@@ -9,6 +9,11 @@ class IngredientsInline(admin.TabularInline):
     extra = 3
 
 
+class TagsInline(admin.TabularInline):
+    model = Recipe.tags.through
+    extra = 3
+
+
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -26,7 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'count_favorite',
     )
     readonly_fields = ('count_favorite',)
-    inlines = (IngredientsInline,)
+    inlines = (IngredientsInline, TagsInline,)
     search_fields = ('name', 'author', 'tags')
     list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
