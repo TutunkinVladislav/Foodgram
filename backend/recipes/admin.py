@@ -30,6 +30,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'author',
         'count_favorite',
     )
+    exclude = ('tags',)
     readonly_fields = ('count_favorite',)
     inlines = (IngredientsInline, TagsInline,)
     search_fields = ('name', 'author', 'tags')
