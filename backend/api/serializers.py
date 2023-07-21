@@ -1,3 +1,4 @@
+import re
 import base64
 
 from django.contrib.auth.hashers import check_password
@@ -13,19 +14,18 @@ from users.models import User
 
 class UserSerializer(UserSerializer):
     """Сериализатор для работы с пользователями"""
-    subscription = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ('id', 'username', 'email',
-                  'first_name', 'last_name', 'subscription')
+                  'first_name', 'last_name', 'is_subscribed')
 
-    def get_subscription(self, obj):
+    def get_is_subscribed(self, obj):
         return (self.context.get('request').user.is_authenticated
                 and Subscribe.objects.filter(
                     user=self.context.get('request').user,
-                    author=obj).
-                exists())
+                    author=obj).exists())
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -116,7 +116,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     image = Base64ImageField()
-    favorite = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
@@ -124,10 +124,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'tags', 'author', 'ingredients',
             'name', 'image', 'text', 'cooking_time',
-            'favorite', 'is_in_shopping_cart',
+            'is_favorited', 'is_in_shopping_cart',
         )
 
-    def favorite(self, obj):
+    def get_is_favorited(self, obj):
         return (self.context.get('request').user.is_authenticated
                 and obj.favorite.exists()
                 )
@@ -163,6 +163,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         name = data.get('name')
+        if re.match(r'.+\s?[a-zA-Zа-яА-Я]+.*', name) is None:
+            raise serializers.ValidationError(
+                {'name': 'Введите корректное название рецепта'}
+            )
         if len(name) < 4:
             raise serializers.ValidationError({
                 'name': 'Название рецепта минимум 4 символа'})
@@ -278,13 +282,8 @@ class SubscribeSerializer(serializers.ModelSerializer):
         return SubscribeRecipeSerializer(recipes, many=True).data
 
     def get_is_subscribed(self, obj):
-        subscribe = Subscribe.objects.filter(
-            user=self.context.get('request').user,
-            author=obj.author
-        )
-        if subscribe:
-            return True
-        return False
+        return Subscribe.objects.filter(user=self.context.get('request').user,
+                                        author=obj.author).exists()
 
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):

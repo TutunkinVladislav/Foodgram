@@ -1,18 +1,23 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from users.models import User
+from .constants import (LENGTH_FIELD_COLOR, LENGTH_FIELD_NAME,
+                        ONE_GRAMM_NGREDIENTS, ONE_MINUTES,
+                        THREE_HUNDRED_MINUTES,
+                        THREE_THOUSANS_GRAMM_INGREDIENTS)
 
 
 class Ingredient(models.Model):
     """Модель ингредиентов"""
 
     name = models.CharField(
-        'Название ингредиента',
-        max_length=200,
+        verbose_name='Название ингредиента',
+        max_length=LENGTH_FIELD_NAME,
     )
     measurement_unit = models.CharField(
-        'Единицы измерения',
-        max_length=200
+        verbose_name='Единицы измерения',
+        max_length=LENGTH_FIELD_NAME,
     )
 
     class Meta:
@@ -22,7 +27,7 @@ class Ingredient(models.Model):
                 name='unique_name_measurement')]
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        ordering = ('id',)
+        ordering = ('name',)
 
     def __str__(self):
         return f'{self.name} ({self.measurement_unit})'
@@ -32,21 +37,21 @@ class Tag(models.Model):
     """Модель тегов"""
 
     name = models.CharField(
-        'Название тега',
-        max_length=200,
+        verbose_name='Название тега',
+        max_length=LENGTH_FIELD_NAME,
         unique=True,
     )
     color = models.CharField(
-        'Цветовой HEX-код',
-        max_length=7,
+        verbose_name='Цветовой HEX-код',
+        max_length=LENGTH_FIELD_COLOR,
         default='#00ff7f',
         null=True,
         blank=True,
         unique=True,
     )
     slug = models.SlugField(
-        'Slug тега',
-        max_length=200,
+        verbose_name='Slug тега',
+        max_length=LENGTH_FIELD_NAME,
         unique=True,
     )
 
@@ -79,25 +84,27 @@ class Recipe(models.Model):
         related_name='recipes',
     )
     image = models.ImageField(
-        'Изображение рецепта',
+        verbose_name='Изображение рецепта',
         upload_to='recipes/images',
     )
     name = models.CharField(
-        'Название рецепта',
-        max_length=200,
+        verbose_name='Название рецепта',
+        max_length=LENGTH_FIELD_NAME,
     )
     text = models.TextField(
-        'Описание рецепта',
+        verbose_name='Описание рецепта',
     )
     cooking_time = models.PositiveIntegerField(
-        'Время приготовления',
-        default=1,
-        validators=(MinValueValidator(1, 'Минимум 1 минута'),
-                    MaxValueValidator(180, 'Максимум 3 часа')),
+        verbose_name='Время приготовления',
+        default=ONE_MINUTES,
+        validators=(MinValueValidator(ONE_MINUTES, 'Минимум 1 минута'),
+                    MaxValueValidator(THREE_HUNDRED_MINUTES,
+                                      'Максимум 300 минут')),
     )
     pub_date = models.DateTimeField(
-        'Дата публикации рецепта',
-        auto_now_add=True)
+        verbose_name='Дата публикации рецепта',
+        auto_now_add=True,
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -122,14 +129,15 @@ class IngredientAmount(models.Model):
         related_name='ingredient',
     )
     amount = models.PositiveIntegerField(
-        'Количество',
-        default=1,
-        validators=(MinValueValidator(1, 'Минимум 1'),
-                    MaxValueValidator(15, 'Максимум 15')),
+        verbose_name='Количество',
+        default=ONE_GRAMM_NGREDIENTS,
+        validators=(MinValueValidator(ONE_GRAMM_NGREDIENTS, 'Минимум 1г.'),
+                    MaxValueValidator(THREE_THOUSANS_GRAMM_INGREDIENTS,
+                                      'Максимум 3000г.')),
     )
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('recipe',)
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
         constraints = [
@@ -158,7 +166,7 @@ class AbstractBase(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('id',)
+        ordering = ('user',)
         constraints = [
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
@@ -198,20 +206,23 @@ class Subscribe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='follower',
-        verbose_name='Подписчик')
+        verbose_name='Подписчик',
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following',
-        verbose_name='Автор')
+        verbose_name='Автор',
+    )
     created = models.DateTimeField(
-        'Дата подписки',
-        auto_now_add=True)
+        verbose_name='Дата подписки',
+        auto_now_add=True,
+    )
 
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        ordering = ('-id',)
+        ordering = ('-created',)
         constraints = [
             models.UniqueConstraint(
                 fields=('user', 'author'),
